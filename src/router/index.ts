@@ -4,7 +4,7 @@ import Classes from "../views/Classes.vue";
 
 const routes: Array<RouteRecordRaw> = [
   {
-    path: "/",
+    path: "/:pathMatch( )",
     name: "Login",
     component: Login,
     alias: "/:pathMatch(.*)",
