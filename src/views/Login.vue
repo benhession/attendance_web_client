@@ -8,7 +8,12 @@
     <div class="p-sm-offset-0 p-sm-12 p-md-offset-3 p-md-6 p-col">
       <div class="p-field">
         <label for="username">Username</label>
-        <InputText id="username" type="text" class="p-shadow-1" />
+        <InputText
+          id="username"
+          type="text"
+          class="p-shadow-1"
+          v-model="username"
+        />
       </div>
       <div class="p-field">
         <label for="password">Password</label>
@@ -17,14 +22,11 @@
           class="p-shadow-1"
           :feedback="false"
           toggleMask
+          v-model="password"
         />
       </div>
       <div class="p-md-offset-9 p-md-3" style="padding: 0">
-        <Button
-          id="submitButton"
-          label="Submit"
-          @click="router.push({ name: 'Classes' })"
-        />
+        <Button id="submitButton" label="Submit" @click="login" />
       </div>
     </div>
   </div>
@@ -32,13 +34,36 @@
 
 <script lang="ts">
 import { useRouter } from "vue-router";
+import { ACTIONS, useStore } from "@/store";
+import { ref } from "vue";
 
 export default {
   name: "Login",
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   setup() {
+    // constants
     const router = useRouter();
-    return { router };
+    const store = useStore();
+
+    // reactive references
+    const username = ref("");
+    const password = ref("");
+
+    // functions
+    function login() {
+      // TODO: give the user feedback if the credentials are wrong
+      store
+        .dispatch(ACTIONS.LOG_IN, [username.value, password.value])
+        .then(() => router.push({ name: "Classes" }))
+        .catch((e) => console.log(e));
+    }
+
+    // on load logic
+    if (store.getters.getLoggedIn) {
+      router.push({ name: "Classes" });
+    }
+
+    return { router, username, password, login };
   },
 };
 </script>

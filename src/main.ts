@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import store from "./store";
+import { store, key } from "@/store";
 import PrimeVue from "primevue/config";
 
 import "primeflex/primeflex.css"; // flex
@@ -16,7 +16,8 @@ import PanelMenu from "primevue/panelmenu";
 import Panel from "primevue/panel";
 
 const app = createApp(App);
-app.use(store).use(router);
+app.use(store, key);
+app.use(router);
 app.use(PrimeVue);
 
 app.component("Button", Button);

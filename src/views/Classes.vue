@@ -20,15 +20,20 @@
 <script lang="ts">
 import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useStore, ACTIONS } from "@/store";
 
 export default {
   name: "Classes",
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   setup() {
     const router = useRouter();
+    const store = useStore();
 
     function logout(): void {
-      router.push({ path: "/" });
+      store
+        .dispatch(ACTIONS.LOG_OUT)
+        .then(() => router.push({ path: "/" }))
+        .catch((e) => console.log(e));
     }
 
     const panelContent = ref<string>("Empty");
@@ -178,6 +183,11 @@ export default {
         ],
       },
     ]);
+    // logic on load
+    if (store.getters.getLoggedIn === false) {
+      router.push({ path: "/" });
+    }
+
     return { logout, items, panelContent };
   },
 };
