@@ -28,6 +28,7 @@
       <div class="p-md-offset-9 p-md-3" style="padding: 0">
         <Button id="submitButton" label="Submit" @click="login" />
       </div>
+      <p v-if="errorMessage !== ''" id="infoMessage">{{ errorMessage }}</p>
     </div>
   </div>
 </template>
@@ -48,14 +49,21 @@ export default {
     // reactive references
     const username = ref("");
     const password = ref("");
+    const errorMessage = ref("");
 
     // functions
     function login() {
-      // TODO: give the user feedback if the credentials are wrong
       store
         .dispatch(ACTIONS.LOG_IN, [username.value, password.value])
         .then(() => router.push({ name: "Classes" }))
-        .catch((e) => console.log(e));
+        .catch((e) => {
+          if (e.message === "Request failed with status code 401") {
+            errorMessage.value = "Please enter a valid username and password.";
+          } else if (e.message === "User does not have tutor privileges") {
+            errorMessage.value =
+              "You must have tutor privileges to use this application.";
+          }
+        });
     }
 
     // on load logic
@@ -63,7 +71,7 @@ export default {
       router.push({ name: "Classes" });
     }
 
-    return { router, username, password, login };
+    return { router, username, password, login, errorMessage };
   },
 };
 </script>
@@ -80,5 +88,11 @@ header {
 
 #submitButton {
   margin-top: 2vh;
+}
+
+#infoMessage {
+  width: 100%;
+  color: red;
+  text-align: center;
 }
 </style>
