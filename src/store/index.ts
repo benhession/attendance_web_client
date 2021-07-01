@@ -10,6 +10,7 @@ import {
 import { InjectionKey } from "vue";
 import authService, { KeyCloakTokens } from "@/services/authService";
 import jwtDecode from "jwt-decode";
+import VuexPersistence from "vuex-persist";
 
 export interface State {
   loggedIn: boolean;
@@ -151,7 +152,7 @@ const actions: ActionTree<State, any> = {
 
   [ACTIONS.FETCH_TOKENS_REFRESH_GRANT](state): Promise<void> {
     return new Promise((resolve, reject) => {
-      const refreshToken = state.getters.getRefreshToken();
+      const refreshToken = store.state.refreshToken;
 
       authService
         .fetchTokensRefreshTokenGrant(refreshToken)
@@ -216,15 +217,26 @@ const getters: GetterTree<State, any> = {
       return new Date() > state.accessTokenExpiry;
     }
   },
-  getAccessToken(): string {
-    return state.accessToken;
-  },
-  getRefreshToken(): string {
-    return state.refreshToken;
-  },
 };
 
-export const store = createStore<State>({ state, getters, actions, mutations });
+const vuexLocal = new VuexPersistence<State>({
+  storage: window.sessionStorage,
+  reducer: (state) => ({
+    loggedIn: state.loggedIn,
+    accessToken: state.accessToken,
+    accessTokenExpiry: state.accessTokenExpiry,
+    refreshToken: state.refreshToken,
+    refreshTokenExpiry: state.refreshTokenExpiry,
+  }),
+});
+
+export const store = createStore<State>({
+  state,
+  getters,
+  actions,
+  mutations,
+  plugins: [vuexLocal.plugin],
+});
 
 export function useStore(): Store<State> {
   return baseUseStore(key);
