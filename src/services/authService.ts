@@ -9,7 +9,6 @@ const keycloakMobileClient = axios.create({
   },
 });
 
-const clientSecret = "b5768dbb-377c-45c1-a024-6e991ad1d35d";
 const clientID = "web_client";
 const scope = "web_client";
 
@@ -33,7 +32,6 @@ export default {
     params.append("grant_type", "password");
     params.append("client_id", clientID);
     params.append("scope", scope);
-    params.append("client_secret", clientSecret);
     params.append("username", username);
     params.append("password", password);
 
@@ -50,7 +48,6 @@ export default {
     const params = new URLSearchParams();
     params.append("grant_type", "refresh_token");
     params.append("client_id", clientID);
-    params.append("client_secret", clientSecret);
     params.append("refresh_token", refreshToken);
 
     const config: AxiosRequestConfig = {
