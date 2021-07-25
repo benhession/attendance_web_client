@@ -62,6 +62,8 @@ export default {
           } else if (e.message === "User does not have tutor privileges") {
             errorMessage.value =
               "You must have tutor privileges to use this application.";
+          } else {
+            console.error(e);
           }
         });
     }

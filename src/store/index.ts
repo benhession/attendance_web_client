@@ -11,6 +11,8 @@ import { InjectionKey } from "vue";
 import authService, { KeyCloakTokens } from "@/services/authService";
 import jwtDecode from "jwt-decode";
 import VuexPersistence from "vuex-persist";
+import { TutorModule, TutorModuleInterface } from "@/model/TutorModule";
+import tutorModuleService from "@/services/tutorModuleService";
 
 export interface State {
   loggedIn: boolean;
@@ -18,6 +20,7 @@ export interface State {
   accessTokenExpiry: Date | null;
   refreshToken: string;
   refreshTokenExpiry: Date | null;
+  tutorModules: Array<TutorModule>;
 }
 
 export const key: InjectionKey<Store<State>> = Symbol();
@@ -27,6 +30,7 @@ const state: State = {
   accessTokenExpiry: null,
   refreshToken: "",
   refreshTokenExpiry: null,
+  tutorModules: new Array<TutorModule>(),
 };
 
 // enum for auto-completion
@@ -37,8 +41,8 @@ export const enum MUTATIONS {
   SET_REFRESH_TOKEN = "SET_REFRESH_TOKEN",
   SET_REFRESH_EXPIRY = "SET_REFRESH_EXPIRY",
   CLEAR_TOKENS = "CLEAR_TOKENS",
-  UPDATE_TUTORS_CLASSES = "UPDATE_STUDENT_CLASSES",
-  CLEAR_TUTORS_CLASSES = "CLEAR_STUDENT_CLASSES",
+  UPDATE_TUTORS_MODULES = "UPDATE_STUDENT_MODULES",
+  CLEAR_TUTORS_MODULES = "CLEAR_STUDENT_MODULES",
 }
 
 const mutations: MutationTree<State> = {
@@ -68,6 +72,12 @@ const mutations: MutationTree<State> = {
     state.refreshToken = "";
     state.refreshTokenExpiry = null;
   },
+  [MUTATIONS.UPDATE_TUTORS_MODULES](state, modules: Array<TutorModule>) {
+    state.tutorModules = modules;
+  },
+  [MUTATIONS.CLEAR_TUTORS_MODULES](state) {
+    state.tutorModules = [];
+  },
 };
 
 // enum for auto-completion
@@ -77,11 +87,12 @@ export const enum ACTIONS {
   LOG_OUT = "LOG_OUT",
   FETCH_TOKENS_REFRESH_GRANT = "FETCH_TOKENS_REFRESH_GRANT",
   UPDATE_ACCESS_TOKEN = "UPDATE_ACCESS_TOKEN",
+  FETCH_TUTOR_MODULES = "FETCH_TUTOR_MODULES",
 }
 
 // actions helper function
 function updateTokens(
-  state: ActionContext<State, any>,
+  state: ActionContext<State, unknown>,
   data: KeyCloakTokens
 ): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -107,24 +118,28 @@ function updateTokens(
   });
 }
 
-const actions: ActionTree<State, any> = {
+const actions: ActionTree<State, unknown> = {
   [ACTIONS.LOG_IN](state, [username, password]): Promise<void> {
     return new Promise((resolve, reject) => {
       state
         .dispatch(ACTIONS.FETCH_TOKENS_PWD_GRANT, [username, password])
         .then(() => {
-          state.commit(MUTATIONS.SET_LOGGED_IN, true);
-          resolve();
-          //TODO: fetch tutors classes
+          state
+            .dispatch(ACTIONS.FETCH_TUTOR_MODULES)
+            .then(() => {
+              state.commit(MUTATIONS.SET_LOGGED_IN, true);
+              resolve();
+            })
+            .catch((e: Error) => reject(e));
         })
-        .catch((e) => reject(e));
+        .catch((e: Error) => reject(e));
     });
   },
 
   [ACTIONS.LOG_OUT](state) {
     state.commit(MUTATIONS.SET_LOGGED_IN, false);
     state.commit(MUTATIONS.CLEAR_TOKENS);
-    // TODO: Clear tutors classes
+    state.commit(MUTATIONS.CLEAR_TUTORS_MODULES);
   },
 
   [ACTIONS.FETCH_TOKENS_PWD_GRANT](state, [username, password]): Promise<void> {
@@ -140,10 +155,18 @@ const actions: ActionTree<State, any> = {
             if (data !== null) {
               updateTokens(state, data)
                 .then(() => resolve())
-                .catch((e) => reject(e));
+                .catch((e: Error) => reject(e));
             } else {
               reject(new Error("unable to get tokens from password grant"));
             }
+          } else {
+            reject(
+              new Error(
+                "unable to get tokens from password grant, status:".concat(
+                  response.statusText
+                )
+              )
+            );
           }
         })
         .catch((e: Error) => reject(e));
@@ -165,7 +188,7 @@ const actions: ActionTree<State, any> = {
             if (data !== null) {
               updateTokens(state, data)
                 .then(() => resolve())
-                .catch((e) => reject(e));
+                .catch((e: Error) => reject(e));
             } else {
               reject(new Error("unable to get tokens from refresh grant"));
             }
@@ -183,7 +206,7 @@ const actions: ActionTree<State, any> = {
 
         if (refreshIsExpired) {
           // reject log out and push to log in screen should be implemented in the view controller
-          reject(new Error("refresh token is expired"));
+          reject(new Error("UPDATE_ACCESS_TOKEN: refresh token is expired"));
         } else {
           // otherwise update the tokens
           state
@@ -197,25 +220,65 @@ const actions: ActionTree<State, any> = {
       }
     });
   },
+
+  [ACTIONS.FETCH_TUTOR_MODULES](state): Promise<void> {
+    return new Promise((resolve, reject) => {
+      state
+        .dispatch(ACTIONS.UPDATE_ACCESS_TOKEN)
+        .then(() => {
+          const accessToken: string = state.getters.getAccessToken;
+
+          tutorModuleService
+            .fetchTutorModules(accessToken)
+            .then((response) => {
+              if (response.status === 200) {
+                // tutor has modules, so update them
+                const interfaceArray: Array<TutorModuleInterface> =
+                  response.data;
+                const modulesArray: Array<TutorModule> =
+                  TutorModule.toCollection(interfaceArray);
+
+                state.commit(MUTATIONS.UPDATE_TUTORS_MODULES, modulesArray);
+                resolve();
+              } else if (response.status === 204) {
+                // tutor doesn't have any modules, so clear them
+                state.commit(MUTATIONS.CLEAR_TUTORS_MODULES);
+                resolve();
+              } else {
+                reject(
+                  new Error(
+                    "Unable to get tutors classes from the resource server"
+                  )
+                );
+              }
+            })
+            .catch((e: Error) => reject(e));
+        })
+        .catch((e: Error) => reject(e));
+    });
+  },
 };
 
-const getters: GetterTree<State, any> = {
+const getters: GetterTree<State, unknown> = {
   getLoggedIn(state): boolean {
     return state.loggedIn;
   },
-  getRefreshIsExpired(): boolean {
+  getRefreshIsExpired(state): boolean {
     if (state.refreshTokenExpiry === null) {
       return true;
     } else {
       return new Date() > state.refreshTokenExpiry;
     }
   },
-  getAccessTokenIsExpired(): boolean {
+  getAccessTokenIsExpired(state): boolean {
     if (state.accessTokenExpiry === null) {
       return true;
     } else {
       return new Date() > state.accessTokenExpiry;
     }
+  },
+  getAccessToken(state): string {
+    return state.accessToken;
   },
 };
 
@@ -227,6 +290,7 @@ const vuexLocal = new VuexPersistence<State>({
     accessTokenExpiry: state.accessTokenExpiry,
     refreshToken: state.refreshToken,
     refreshTokenExpiry: state.refreshTokenExpiry,
+    tutorModules: state.tutorModules,
   }),
 });
 
