@@ -57,13 +57,24 @@ export default {
         .dispatch(ACTIONS.LOG_IN, [username.value, password.value])
         .then(() => router.push({ name: "Classes" }))
         .catch((e) => {
-          if (e.message === "Request failed with status code 401") {
-            errorMessage.value = "Please enter a valid username and password.";
-          } else if (e.message === "User does not have tutor privileges") {
-            errorMessage.value =
-              "You must have tutor privileges to use this application.";
-          } else {
-            console.error(e);
+          switch (e.message) {
+            case "Request failed with status code 401": {
+              errorMessage.value =
+                "Please enter a valid username and password.";
+              break;
+            }
+            case "User does not have tutor privileges": {
+              errorMessage.value =
+                "You must have tutor privileges to use this application.";
+              break;
+            }
+            case "Network Error": {
+              errorMessage.value = "Sorry, there was a network error.";
+              break;
+            }
+            default: {
+              console.error(e);
+            }
           }
         });
     }
