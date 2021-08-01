@@ -280,6 +280,9 @@ const getters: GetterTree<State, unknown> = {
   getAccessToken(state): string {
     return state.accessToken;
   },
+  getModules(state): TutorModule[] {
+    return state.tutorModules;
+  },
 };
 
 const vuexLocal = new VuexPersistence<State>({
@@ -290,7 +293,6 @@ const vuexLocal = new VuexPersistence<State>({
     accessTokenExpiry: state.accessTokenExpiry,
     refreshToken: state.refreshToken,
     refreshTokenExpiry: state.refreshTokenExpiry,
-    tutorModules: state.tutorModules,
   }),
 });
 
