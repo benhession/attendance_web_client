@@ -14,6 +14,7 @@ import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import PanelMenu from "primevue/panelmenu";
 import Panel from "primevue/panel";
+import Fieldset from "primevue/fieldset";
 
 const app = createApp(App);
 app.use(store, key);
@@ -25,5 +26,6 @@ app.component("InputText", InputText);
 app.component("Password", Password);
 app.component("PanelMenu", PanelMenu);
 app.component("Panel", Panel);
+app.component("Fieldset", Fieldset);
 
 app.mount("#app");

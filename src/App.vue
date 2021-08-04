@@ -17,12 +17,12 @@ export default {
 
 header {
   width: 100%;
-  height: 10vh;
+  height: 3em;
   background-color: var(--blue-200);
   padding: 0.5rem;
   display: flex;
   align-items: center;
-  margin-bottom: 5vh;
+  margin-bottom: 2vh;
   border-radius: 2px;
 }
 

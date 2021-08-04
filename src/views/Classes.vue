@@ -10,10 +10,16 @@
   </header>
 
   <div class="p-d-flex">
-    <PanelMenu :model="menuContent" class="p-md-3" />
+    <div class="p-md-3 p-d-flex p-flex-column">
+      <Fieldset legend="Next Class" class="info p-mb-2">
+        <p v-if="nextClass === undefined">No Upcoming Classes</p>
+        <a v-else @click="selectedClass = nextClass">{{ nextClass.name }}</a>
+      </Fieldset>
+      <PanelMenu :model="menuContent" class="p-mb-2" />
+    </div>
     <RegisterPanel v-if="classIsSelected" :selected-class="selectedClass" />
     <Panel v-else header="The register will be displayed here" class="p-md-9">
-      <p>Select a class from the menu</p>
+      <p>Please select a class from the menu</p>
     </Panel>
   </div>
 </template>
@@ -25,6 +31,7 @@ import { ACTIONS, useStore } from "@/store";
 import { PanelMenuFormatter, MenuItem } from "@/utilities/PanelMenuFormatter";
 import { TutorClass } from "@/model/TutorClass";
 import RegisterPanel from "@/components/RegisterPanel.vue";
+import { TutorModule } from "@/model/TutorModule";
 
 export default defineComponent({
   name: "Classes",
@@ -36,10 +43,31 @@ export default defineComponent({
     // reactive references
     const selectedClass: Ref<TutorClass | undefined> = ref<TutorClass>();
     const menuContent = ref<MenuItem[]>();
+    const modules = ref<TutorModule[]>();
 
     // computed properties
     const classIsSelected = computed<boolean>(() => {
       return selectedClass.value !== undefined;
+    });
+
+    const nextClass = computed<TutorClass | undefined>(() => {
+      let tutorClasses = new Array<TutorClass>();
+
+      modules.value?.forEach((mod) => {
+        mod.classes.forEach((tutorClass) => {
+          tutorClasses.push(tutorClass);
+        });
+      });
+
+      tutorClasses = tutorClasses
+        .filter((tutorClass) => {
+          return tutorClass.isCurrentOrUpcoming();
+        })
+        .sort((a, b) => {
+          return a.startTime > b.startTime ? 1 : -1;
+        });
+
+      return tutorClasses.length > 0 ? tutorClasses[0] : undefined;
     });
 
     // functions
@@ -57,6 +85,7 @@ export default defineComponent({
       store
         .dispatch(ACTIONS.FETCH_TUTOR_MODULES)
         .then(() => {
+          modules.value = store.getters.getModules;
           menuContent.value = PanelMenuFormatter.formatByYear(
             store.getters.getModules,
             selectedClass
@@ -70,7 +99,7 @@ export default defineComponent({
         });
     }
 
-    return { logout, menuContent, classIsSelected, selectedClass };
+    return { logout, menuContent, classIsSelected, selectedClass, nextClass };
   },
 });
 </script>
@@ -78,5 +107,10 @@ export default defineComponent({
 <style scoped>
 #logoutButton {
   background-color: var(--teal-50);
+}
+
+a {
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

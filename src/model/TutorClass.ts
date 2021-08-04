@@ -38,6 +38,14 @@ export class TutorClass {
     this._classType = tutorClassInterface.classType;
     this._students = StudentAttended.toCollection(tutorClassInterface.students);
   }
+  // static methods
+  static toCollection(classes: TutorClassInterface[]): TutorClass[] {
+    return classes.map<TutorClass>((aClass) => new TutorClass(aClass));
+  }
+  // methods
+  public isCurrentOrUpcoming(): boolean {
+    return moment().isBefore(this.startTime.add(this.duration));
+  }
 
   // Getters
 
@@ -79,10 +87,5 @@ export class TutorClass {
     } else {
       return ClassStatus.IN_PROGRESS;
     }
-  }
-
-  // static methods
-  static toCollection(classes: TutorClassInterface[]): TutorClass[] {
-    return classes.map<TutorClass>((aClass) => new TutorClass(aClass));
   }
 }
