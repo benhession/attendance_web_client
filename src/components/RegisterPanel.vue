@@ -1,5 +1,8 @@
 <template>
-  <Panel :header="theClass.name" class="p-md-9">
+  <Panel
+    :header="theClass.moduleCode.concat(': ').concat(theClass.name)"
+    class="p-md-9"
+  >
     <div class="p-d-flex p-jc-between">
       <div class="p-d-flex p-d-inline">
         <p><b>Date:</b> {{ theClass.startTime.format("MMMM Do YYYY") }}</p>

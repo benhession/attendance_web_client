@@ -8,6 +8,7 @@ export interface TutorClassInterface {
   classId: string;
   name: string;
   location: string;
+  moduleCode: string;
   dateTime: string;
   duration: string;
   classType: string;
@@ -24,6 +25,7 @@ export class TutorClass {
   private readonly _classId: string;
   private readonly _name: string;
   private readonly _location: string;
+  private readonly _moduleCode: string;
   private readonly _dateTime: string;
   private readonly _duration: string;
   private readonly _classType: string;
@@ -33,6 +35,7 @@ export class TutorClass {
     this._classId = tutorClassInterface.classId;
     this._name = tutorClassInterface.name;
     this._location = tutorClassInterface.location;
+    this._moduleCode = tutorClassInterface.moduleCode;
     this._dateTime = tutorClassInterface.dateTime;
     this._duration = tutorClassInterface.duration;
     this._classType = tutorClassInterface.classType;
@@ -59,6 +62,10 @@ export class TutorClass {
 
   get location(): string {
     return this._location;
+  }
+
+  get moduleCode(): string {
+    return this._moduleCode;
   }
 
   get startTime(): moment.Moment {

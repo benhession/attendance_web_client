@@ -12,8 +12,10 @@
   <div class="p-d-flex">
     <div class="p-md-3 p-d-flex p-flex-column">
       <Fieldset legend="Next Class" class="info p-mb-2">
-        <p v-if="nextClass === undefined">No Upcoming Classes</p>
-        <a v-else @click="selectedClass = nextClass">{{ nextClass.name }}</a>
+        <p v-if="upcomingClasses.length === 0">No Upcoming Classes</p>
+        <a v-else @click="selectedClass = upcomingClasses[0]">
+          {{ upcomingClasses[0].moduleCode }}: {{ upcomingClasses[0].name }}
+        </a>
       </Fieldset>
       <PanelMenu :model="menuContent" class="p-mb-2" />
     </div>
@@ -50,7 +52,7 @@ export default defineComponent({
       return selectedClass.value !== undefined;
     });
 
-    const nextClass = computed<TutorClass | undefined>(() => {
+    const upcomingClasses = computed<TutorClass[]>(() => {
       let tutorClasses = new Array<TutorClass>();
 
       modules.value?.forEach((mod) => {
@@ -59,15 +61,15 @@ export default defineComponent({
         });
       });
 
-      tutorClasses = tutorClasses
+      console.log(tutorClasses[0]);
+
+      return tutorClasses
         .filter((tutorClass) => {
           return tutorClass.isCurrentOrUpcoming();
         })
         .sort((a, b) => {
           return a.startTime > b.startTime ? 1 : -1;
         });
-
-      return tutorClasses.length > 0 ? tutorClasses[0] : undefined;
     });
 
     // functions
@@ -99,7 +101,7 @@ export default defineComponent({
         });
     }
 
-    return { logout, menuContent, classIsSelected, selectedClass, nextClass };
+    return { logout, menuContent, classIsSelected, selectedClass, upcomingClasses };
   },
 });
 </script>
