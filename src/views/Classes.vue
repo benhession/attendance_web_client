@@ -11,28 +11,36 @@
 
   <div class="p-d-flex">
     <PanelMenu :model="menuContent" class="p-md-3" />
-    <Panel header="Selected Class title" class="p-md-9">
-      <p>{{ panelContent }}</p>
+    <RegisterPanel v-if="classIsSelected" :selected-class="selectedClass" />
+    <Panel v-else header="The register will be displayed here" class="p-md-9">
+      <p>Select a class from the menu</p>
     </Panel>
   </div>
 </template>
 
 <script lang="ts">
 import { useRouter } from "vue-router";
-import { ref } from "vue";
+import { computed, defineComponent, Ref, ref } from "vue";
 import { ACTIONS, useStore } from "@/store";
 import { PanelMenuFormatter, MenuItem } from "@/utilities/PanelMenuFormatter";
+import { TutorClass } from "@/model/TutorClass";
+import RegisterPanel from "@/components/RegisterPanel.vue";
 
-export default {
+export default defineComponent({
   name: "Classes",
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  components: { RegisterPanel },
   setup() {
     const router = useRouter();
     const store = useStore();
 
     // reactive references
-    const panelContent = ref<string>("Empty");
+    const selectedClass: Ref<TutorClass | undefined> = ref<TutorClass>();
     const menuContent = ref<MenuItem[]>();
+
+    // computed properties
+    const classIsSelected = computed<boolean>(() => {
+      return selectedClass.value !== undefined;
+    });
 
     // functions
     function logout(): void {
@@ -51,7 +59,7 @@ export default {
         .then(() => {
           menuContent.value = PanelMenuFormatter.formatByYear(
             store.getters.getModules,
-            panelContent
+            selectedClass
           );
         })
         .catch((e) => {
@@ -62,12 +70,12 @@ export default {
         });
     }
 
-    return { logout, menuContent, panelContent };
+    return { logout, menuContent, classIsSelected, selectedClass };
   },
-};
+});
 </script>
 
-<style>
+<style scoped>
 #logoutButton {
   background-color: var(--teal-50);
 }

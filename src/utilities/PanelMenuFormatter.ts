@@ -13,7 +13,7 @@ export interface MenuItem {
 export class PanelMenuFormatter {
   static formatByYear(
     modules: TutorModule[],
-    reactiveRef: Ref<string>
+    selectedClass: Ref<TutorClass | undefined>
   ): MenuItem[] {
     const menuItems = new Array<MenuItem>();
     const yearSet = new Set<string>();
@@ -44,13 +44,11 @@ export class PanelMenuFormatter {
           modules,
           year,
           stringIndex,
-          reactiveRef
+          selectedClass
         ),
       });
       index++;
     });
-
-    console.log(menuItems);
 
     return menuItems;
   }
@@ -59,7 +57,7 @@ export class PanelMenuFormatter {
     modules: TutorModule[],
     year: string,
     parentIndex: string,
-    reactiveRef: Ref<string>
+    selectedClass: Ref<TutorClass | undefined>
   ): MenuItem[] {
     const menuItems = new Array<MenuItem>();
     let index = 0;
@@ -75,7 +73,7 @@ export class PanelMenuFormatter {
           items: PanelMenuFormatter.formatClasses(
             module.classes,
             indexString,
-            reactiveRef
+            selectedClass
           ),
         });
       }
@@ -87,7 +85,7 @@ export class PanelMenuFormatter {
   private static formatClasses(
     classes: TutorClass[],
     parentIndex: string,
-    reactiveRef: Ref<string>
+    selectedClass: Ref<TutorClass | undefined>
   ): MenuItem[] {
     const menuItems = new Array<MenuItem>();
     const index = 0;
@@ -105,7 +103,7 @@ export class PanelMenuFormatter {
         label: aClass.name,
         icon: "pi pi-fw pi-book",
         command: () => {
-          reactiveRef.value = aClass.name.concat(" Clicked");
+          selectedClass.value = aClass;
         },
       });
     });

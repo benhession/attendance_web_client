@@ -14,6 +14,12 @@ export interface TutorClassInterface {
   students: StudentAttendedInterface[];
 }
 
+export enum ClassStatus {
+  UPCOMING,
+  IN_PROGRESS,
+  PREVIOUS,
+}
+
 export class TutorClass {
   private readonly _classId: string;
   private readonly _name: string;
@@ -47,8 +53,8 @@ export class TutorClass {
     return this._location;
   }
 
-  get dateTime(): moment.Moment {
-    return moment(this._dateTime).local();
+  get startTime(): moment.Moment {
+    return moment.utc(this._dateTime).local();
   }
 
   get duration(): moment.Duration {
@@ -61,6 +67,18 @@ export class TutorClass {
 
   get students(): StudentAttended[] {
     return this._students;
+  }
+
+  get classStatus(): ClassStatus {
+    const now: moment.Moment = moment();
+
+    if (now.isBefore(this.startTime)) {
+      return ClassStatus.UPCOMING;
+    } else if (now.isAfter(this.startTime.add(this.duration))) {
+      return ClassStatus.PREVIOUS;
+    } else {
+      return ClassStatus.IN_PROGRESS;
+    }
   }
 
   // static methods

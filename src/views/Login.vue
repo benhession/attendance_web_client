@@ -88,17 +88,8 @@ export default {
   },
 };
 </script>
-<style>
-header {
-  width: 100%;
-  height: 10vh;
-  background-color: var(--blue-200);
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  margin-bottom: 5vh;
-}
 
+<style scoped>
 #submitButton {
   margin-top: 2vh;
 }
