@@ -13,7 +13,7 @@
     <div class="p-md-3 p-d-flex p-flex-column">
       <Fieldset legend="Next Class" class="info p-mb-2">
         <p v-if="upcomingClasses.length === 0">No Upcoming Classes</p>
-        <a v-else @click="selectedClass = upcomingClasses[0]">
+        <a v-else @click="nextClassClicked">
           {{ upcomingClasses[0].moduleCode }}: {{ upcomingClasses[0].name }}
         </a>
       </Fieldset>
@@ -45,9 +45,12 @@ export default defineComponent({
     // reactive references
     const selectedClass: Ref<TutorClass | undefined> = ref<TutorClass>();
     const menuContent = ref<MenuItem[]>();
-    const modules = ref<TutorModule[]>();
 
     // computed properties
+    const modules = computed<TutorModule[]>(() => {
+      return store.getters.getModules;
+    });
+
     const classIsSelected = computed<boolean>(() => {
       return selectedClass.value !== undefined;
     });
@@ -55,13 +58,11 @@ export default defineComponent({
     const upcomingClasses = computed<TutorClass[]>(() => {
       let tutorClasses = new Array<TutorClass>();
 
-      modules.value?.forEach((mod) => {
+      modules.value.forEach((mod) => {
         mod.classes.forEach((tutorClass) => {
           tutorClasses.push(tutorClass);
         });
       });
-
-      console.log(tutorClasses[0]);
 
       return tutorClasses
         .filter((tutorClass) => {
@@ -80,6 +81,11 @@ export default defineComponent({
         .catch((e) => console.log(e));
     }
 
+    function nextClassClicked() {
+      selectedClass.value = upcomingClasses.value[0];
+      store.dispatch(ACTIONS.FETCH_TUTOR_MODULES);
+    }
+
     // logic on load
     if (store.getters.getLoggedIn === false) {
       router.push({ path: "/" });
@@ -87,7 +93,6 @@ export default defineComponent({
       store
         .dispatch(ACTIONS.FETCH_TUTOR_MODULES)
         .then(() => {
-          modules.value = store.getters.getModules;
           menuContent.value = PanelMenuFormatter.formatByYear(
             store.getters.getModules,
             selectedClass
@@ -101,7 +106,14 @@ export default defineComponent({
         });
     }
 
-    return { logout, menuContent, classIsSelected, selectedClass, upcomingClasses };
+    return {
+      logout,
+      menuContent,
+      classIsSelected,
+      selectedClass,
+      upcomingClasses,
+      nextClassClicked,
+    };
   },
 });
 </script>

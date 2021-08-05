@@ -32,5 +32,6 @@ header {
   --upcoming-colour: #40199e;
   --in-progress-colour: #eb740f;
   --previous-colour: #1a9e19;
+  --error-colour: red;
 }
 </style>

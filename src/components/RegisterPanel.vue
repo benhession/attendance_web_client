@@ -1,8 +1,7 @@
 <template>
-  <Panel
-    :header="theClass.moduleCode.concat(': ').concat(theClass.name)"
-    class="p-md-9"
-  >
+  <Panel :header="classTitle" class="p-md-9">
+    <p class="error-info">{{ errorMessage }}</p>
+
     <div class="p-d-flex p-jc-between">
       <div class="p-d-flex p-d-inline">
         <p><b>Date:</b> {{ theClass.startTime.format("MMMM Do YYYY") }}</p>
@@ -32,7 +31,12 @@
         </p>
       </div>
     </div>
+
     <p class="p-mt-0 p-mb-5"><b>Location: </b>{{ theClass.location }}</p>
+    <div v-if="theClass.classStatus !== ClassStatus.PREVIOUS" class="p-d-flex">
+      <Button class="p-mb-3" @click="fetchQrImageB64">QR Code </Button>
+    </div>
+
     <div v-if="theClass.classStatus !== ClassStatus.UPCOMING">
       <p class="p-mb-1">Key:</p>
       <div class="p-d-flex p-align-center">
@@ -55,9 +59,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRefs } from "vue";
+import { computed, defineComponent, ref, toRefs, watch } from "vue";
 import { TutorClass, ClassStatus } from "@/model/TutorClass";
 import RegisterItem from "@/components/RegisterItem.vue";
+import qrImageService from "@/services/qrImageService";
+import { useRouter } from "vue-router";
+import { ACTIONS, useStore } from "@/store";
 
 export default defineComponent({
   name: "RegisterPanel",
@@ -70,21 +77,69 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const router = useRouter();
+    const store = useStore();
+
     // props
     const theProps = toRefs(props);
     const theClass = ref(theProps.selectedClass);
 
+    // reactive references
+    const errorMessage = ref<string>("");
+
     // computed properties
+    const classTitle = computed<string>(() => {
+      return theClass.value.moduleCode.concat(": ").concat(theClass.value.name);
+    });
+
     const theStudents = computed(() => {
       return theClass.value.students;
     });
 
-    return { theClass, theStudents, ClassStatus };
+    // functions
+    function fetchQrImageB64() {
+      qrImageService
+        .fetchQRImage(theClass.value.classId)
+        .then((imgString) => {
+          const routeData = router.resolve({
+            name: "QrWindow",
+            query: {
+              qrImageB64: imgString,
+              classTitle: classTitle.value,
+            },
+          });
+
+          window.open(routeData.href, "_blank");
+        })
+        .catch((e: Error) => {
+          errorMessage.value = "Error getting QR code: ".concat(e.message);
+          store.dispatch(ACTIONS.FETCH_TUTOR_MODULES);
+        });
+
+      // watchers
+      watch(theClass, () => {
+        errorMessage.value = "";
+      });
+    }
+
+    return {
+      theClass,
+      classTitle,
+      theStudents,
+      ClassStatus,
+      errorMessage,
+      fetchQrImageB64,
+    };
   },
 });
 </script>
 
 <style scoped>
+.error-info {
+  color: var(--error-colour);
+  text-align: center;
+}
+
 .legend-colour-box {
   height: 40px;
   width: 40px;

@@ -27,5 +27,6 @@ app.component("Password", Password);
 app.component("PanelMenu", PanelMenu);
 app.component("Panel", Panel);
 app.component("Fieldset", Fieldset);
+app.component("qrcode");
 
 app.mount("#app");

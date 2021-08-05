@@ -36,11 +36,10 @@
 <script lang="ts">
 import { useRouter } from "vue-router";
 import { ACTIONS, useStore } from "@/store";
-import { ref } from "vue";
+import { ref, defineComponent } from "vue";
 
-export default {
+export default defineComponent({
   name: "Login",
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   setup() {
     // constants
     const router = useRouter();
@@ -86,7 +85,7 @@ export default {
 
     return { router, username, password, login, errorMessage };
   },
-};
+});
 </script>
 
 <style scoped>
@@ -96,7 +95,7 @@ export default {
 
 #infoMessage {
   width: 100%;
-  color: red;
+  color: var(--error-colour);
   text-align: center;
 }
 </style>
