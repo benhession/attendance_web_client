@@ -15,6 +15,10 @@ export default {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  font-size: 90%;
+}
+
 header {
   width: 100%;
   height: 3em;
@@ -24,6 +28,7 @@ header {
   align-items: center;
   margin-bottom: 2vh;
   border-radius: 2px;
+  font-size: 1.2em;
 }
 
 :root {
