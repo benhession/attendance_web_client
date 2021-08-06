@@ -10,7 +10,7 @@
   </header>
 
   <div class="p-d-flex">
-    <div class="p-md-3 p-d-flex p-flex-column">
+    <div class="p-sm-3 p-d-flex p-flex-column">
       <Fieldset legend="Next Class" class="info p-mb-2">
         <p v-if="upcomingClasses.length === 0">No Upcoming Classes</p>
         <a v-else @click="nextClassClicked">
@@ -78,12 +78,17 @@ export default defineComponent({
       store
         .dispatch(ACTIONS.LOG_OUT)
         .then(() => router.push({ path: "/" }))
-        .catch((e) => console.log(e));
+        .catch((e) => console.error(e));
     }
 
     function nextClassClicked() {
       selectedClass.value = upcomingClasses.value[0];
-      store.dispatch(ACTIONS.FETCH_TUTOR_MODULES);
+      store.dispatch(ACTIONS.FETCH_TUTOR_MODULES).catch((e: Error) => {
+        console.error("Error fetching tutors modules: ", e.message);
+        store.dispatch(ACTIONS.LOG_OUT).then(() => {
+          router.push({ path: "/" });
+        });
+      });
     }
 
     // logic on load
@@ -94,12 +99,12 @@ export default defineComponent({
         .dispatch(ACTIONS.FETCH_TUTOR_MODULES)
         .then(() => {
           menuContent.value = PanelMenuFormatter.formatByYear(
-            store.getters.getModules,
+            modules.value,
             selectedClass
           );
         })
         .catch((e) => {
-          console.log(e);
+          console.error(e);
           store.dispatch(ACTIONS.LOG_OUT).then(() => {
             router.push({ path: "/" });
           });

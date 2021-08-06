@@ -13,6 +13,7 @@ import jwtDecode from "jwt-decode";
 import VuexPersistence from "vuex-persist";
 import { TutorModule, TutorModuleInterface } from "@/model/TutorModule";
 import tutorModuleService from "@/services/tutorModuleService";
+import { TutorClass } from "@/model/TutorClass";
 
 export interface State {
   loggedIn: boolean;
@@ -88,6 +89,8 @@ export const enum ACTIONS {
   FETCH_TOKENS_REFRESH_GRANT = "FETCH_TOKENS_REFRESH_GRANT",
   UPDATE_ACCESS_TOKEN = "UPDATE_ACCESS_TOKEN",
   FETCH_TUTOR_MODULES = "FETCH_TUTOR_MODULES",
+  MARK_STUDENT_ATTENDED = "MARK_STUDENT_ATTENDED",
+  UPDATE_CLASS = "UPDATE_CLASS",
 }
 
 // actions helper function
@@ -255,6 +258,68 @@ const actions: ActionTree<State, unknown> = {
             .catch((e: Error) => reject(e));
         })
         .catch((e: Error) => reject(e));
+    });
+  },
+  [ACTIONS.MARK_STUDENT_ATTENDED](state, [studentId, classId]): Promise<void> {
+    return new Promise((resolve, reject) => {
+      state
+        .dispatch(ACTIONS.UPDATE_ACCESS_TOKEN)
+        .then(() => {
+          const accessToken: string = state.getters.getAccessToken;
+
+          tutorModuleService
+            .markStudentAttended(accessToken, studentId, classId)
+            .then((response) => {
+              if (response.status === 200) {
+                const theClass: TutorClass = new TutorClass(response.data);
+
+                state
+                  .dispatch(ACTIONS.UPDATE_CLASS, theClass)
+                  .then(() => {
+                    resolve();
+                  })
+                  .catch((e: Error) => {
+                    reject(e);
+                  });
+              } else if (response.status === 204) {
+                reject(new Error("Class / student combination not found"));
+              }
+            })
+            .catch((e: Error) => {
+              reject(e);
+            });
+        })
+        .catch((e: Error) => {
+          reject(e);
+        });
+    });
+  },
+  [ACTIONS.UPDATE_CLASS](state, tutorClass: TutorClass): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const moduleArray: Array<TutorModule> = new Array<TutorModule>();
+
+      const stateArray = state.getters.getModules;
+
+      stateArray.forEach((module: TutorModule) => {
+        moduleArray.push(module);
+      });
+
+      if (moduleArray.length === 0) {
+        reject(new Error("Error updating class: no modules present in store"));
+      }
+
+      moduleArray.forEach((module) => {
+        const classes: TutorClass[] = module.classes;
+
+        for (let i = 0; i < classes.length; i++) {
+          if (classes[i].classId === tutorClass.classId) {
+            classes[i] = tutorClass;
+          }
+        }
+      });
+
+      state.commit(MUTATIONS.UPDATE_TUTORS_MODULES, moduleArray);
+      resolve();
     });
   },
 };

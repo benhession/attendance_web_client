@@ -10,7 +10,11 @@
     </div>
     <div v-else class="absent p-d-flex p-jc-between p-align-center">
       <p>{{ fullName }} ({{ student.studentId }})</p>
-      <Button class="p-button-outlined" id="attendButton">
+      <Button
+        class="p-button-outlined"
+        id="attendButton"
+        @click="markStudentAttended"
+      >
         Mark attended
       </Button>
     </div>
@@ -21,6 +25,7 @@
 import { StudentAttended } from "@/model/StudentAttended";
 import { computed, defineComponent, ref, toRefs } from "vue";
 import { ClassStatus, TutorClass } from "@/model/TutorClass";
+import { ACTIONS, useStore } from "@/store";
 
 export default defineComponent({
   name: "RegisterItem",
@@ -37,9 +42,12 @@ export default defineComponent({
     },
   },
   setup(props) {
+    const store = useStore();
+
     // props
     const theProps = toRefs(props);
     const theStudent = ref(theProps.student);
+    const theClass = ref(theProps.theClass);
 
     // computed properties
     const fullName = computed<string>(() => {
@@ -48,7 +56,19 @@ export default defineComponent({
         .concat(theStudent.value.surname);
     });
 
-    return { fullName, ClassStatus };
+    // functions
+    function markStudentAttended() {
+      store
+        .dispatch(ACTIONS.MARK_STUDENT_ATTENDED, [
+          theStudent.value.studentId,
+          theClass.value.classId,
+        ])
+        .catch((e: Error) => {
+          console.error(e);
+        });
+    }
+
+    return { fullName, ClassStatus, markStudentAttended };
   },
 });
 </script>

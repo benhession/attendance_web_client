@@ -1,5 +1,5 @@
 <template>
-  <Panel :header="classTitle" class="p-md-9">
+  <Panel :header="classTitle" class="p-sm-9">
     <p class="error-info">{{ errorMessage }}</p>
 
     <div class="p-d-flex p-jc-between">
@@ -65,6 +65,7 @@ import RegisterItem from "@/components/RegisterItem.vue";
 import qrImageService from "@/services/qrImageService";
 import { useRouter } from "vue-router";
 import { ACTIONS, useStore } from "@/store";
+import { TutorModule } from "@/model/TutorModule";
 
 export default defineComponent({
   name: "RegisterPanel",
@@ -82,12 +83,30 @@ export default defineComponent({
 
     // props
     const theProps = toRefs(props);
-    const theClass = ref(theProps.selectedClass);
+    const theSelectedClass = ref(theProps.selectedClass);
 
     // reactive references
     const errorMessage = ref<string>("");
 
     // computed properties
+    const modules = computed<TutorModule[]>(() => {
+      return store.getters.getModules;
+    });
+
+    const theClass = computed<TutorClass>(() => {
+      let c = new TutorClass();
+
+      modules.value.forEach((module) => {
+        module.classes.forEach((aClass) => {
+          if (aClass.classId === theSelectedClass.value.classId) {
+            c = aClass;
+          }
+        });
+      });
+
+      return c;
+    });
+
     const classTitle = computed<string>(() => {
       return theClass.value.moduleCode.concat(": ").concat(theClass.value.name);
     });
@@ -113,7 +132,12 @@ export default defineComponent({
         })
         .catch((e: Error) => {
           errorMessage.value = "Error getting QR code: ".concat(e.message);
-          store.dispatch(ACTIONS.FETCH_TUTOR_MODULES);
+          store.dispatch(ACTIONS.FETCH_TUTOR_MODULES).catch((e: Error) => {
+            console.error("Error fetching tutors modules: ", e.message);
+            store.dispatch(ACTIONS.LOG_OUT).then(() => {
+              router.push({ path: "/" });
+            });
+          });
         });
 
       // watchers
