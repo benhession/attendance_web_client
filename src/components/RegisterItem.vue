@@ -26,6 +26,8 @@ import { StudentAttended } from "@/model/StudentAttended";
 import { computed, defineComponent, ref, toRefs } from "vue";
 import { ClassStatus, TutorClass } from "@/model/TutorClass";
 import { ACTIONS, useStore } from "@/store";
+import { useToast } from "primevue/usetoast";
+import { useRouter } from "vue-router";
 
 export default defineComponent({
   name: "RegisterItem",
@@ -43,6 +45,8 @@ export default defineComponent({
   },
   setup(props) {
     const store = useStore();
+    const router = useRouter();
+    const toast = useToast();
 
     // props
     const theProps = toRefs(props);
@@ -65,6 +69,18 @@ export default defineComponent({
         ])
         .catch((e: Error) => {
           console.error(e);
+          if (e.message === "UPDATE_ACCESS_TOKEN: refresh token is expired") {
+            store.dispatch(ACTIONS.LOG_OUT).then(() => {
+              router.push({ path: "/" });
+            });
+          } else {
+            toast.add({
+              severity: "error",
+              summary: "Error",
+              detail: "Unable to mark student attended: ".concat(e.message),
+              life: 3000,
+            });
+          }
         });
     }
 

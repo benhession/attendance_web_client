@@ -1,7 +1,5 @@
 <template>
   <Panel :header="classTitle" class="p-sm-9">
-    <p class="error-info">{{ errorMessage }}</p>
-
     <div class="p-d-flex p-jc-between">
       <div class="p-d-flex p-d-inline">
         <p><b>Date:</b> {{ theClass.startTime.format("MMMM Do YYYY") }}</p>
@@ -59,13 +57,14 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref, toRefs, watch } from "vue";
+import { computed, defineComponent, ref, toRefs } from "vue";
 import { TutorClass, ClassStatus } from "@/model/TutorClass";
 import RegisterItem from "@/components/RegisterItem.vue";
 import qrImageService from "@/services/qrImageService";
 import { useRouter } from "vue-router";
 import { ACTIONS, useStore } from "@/store";
 import { TutorModule } from "@/model/TutorModule";
+import { useToast } from "primevue/usetoast";
 
 export default defineComponent({
   name: "RegisterPanel",
@@ -80,13 +79,11 @@ export default defineComponent({
   setup(props) {
     const router = useRouter();
     const store = useStore();
+    const toast = useToast();
 
     // props
     const theProps = toRefs(props);
     const theSelectedClass = ref(theProps.selectedClass);
-
-    // reactive references
-    const errorMessage = ref<string>("");
 
     // computed properties
     const modules = computed<TutorModule[]>(() => {
@@ -131,19 +128,29 @@ export default defineComponent({
           window.open(routeData.href, "_blank");
         })
         .catch((e: Error) => {
-          errorMessage.value = "Error getting QR code: ".concat(e.message);
+          toast.add({
+            severity: "error",
+            summary: "Error getting QR code",
+            detail: e.message,
+            life: 3000,
+          });
           store.dispatch(ACTIONS.FETCH_TUTOR_MODULES).catch((e: Error) => {
             console.error("Error fetching tutors modules: ", e.message);
-            store.dispatch(ACTIONS.LOG_OUT).then(() => {
-              router.push({ path: "/" });
-            });
+
+            if (e.message === "UPDATE_ACCESS_TOKEN: refresh token is expired") {
+              store.dispatch(ACTIONS.LOG_OUT).then(() => {
+                router.push({ path: "/" });
+              });
+            } else {
+              toast.add({
+                severity: "error",
+                summary: "Error getting updated class list",
+                detail: e.message,
+                life: 3000,
+              });
+            }
           });
         });
-
-      // watchers
-      watch(theClass, () => {
-        errorMessage.value = "";
-      });
     }
 
     return {
@@ -151,7 +158,6 @@ export default defineComponent({
       classTitle,
       theStudents,
       ClassStatus,
-      errorMessage,
       fetchQrImageB64,
     };
   },
@@ -159,11 +165,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.error-info {
-  color: var(--error-colour);
-  text-align: center;
-}
-
 .legend-colour-box {
   height: 40px;
   width: 40px;

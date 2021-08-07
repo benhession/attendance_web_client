@@ -1,5 +1,6 @@
 <template>
   <header class="p--d-flex p-jc-between">
+    <toast />
     <div>Attend - Web Client</div>
     <Button
       label="Logout"
@@ -34,13 +35,16 @@ import { PanelMenuFormatter, MenuItem } from "@/utilities/PanelMenuFormatter";
 import { TutorClass } from "@/model/TutorClass";
 import RegisterPanel from "@/components/RegisterPanel.vue";
 import { TutorModule } from "@/model/TutorModule";
+import Toast from "primevue/toast";
+import { useToast } from "primevue/usetoast";
 
 export default defineComponent({
   name: "Classes",
-  components: { RegisterPanel },
+  components: { RegisterPanel, Toast },
   setup() {
     const router = useRouter();
     const store = useStore();
+    const toast = useToast();
 
     // reactive references
     const selectedClass: Ref<TutorClass | undefined> = ref<TutorClass>();
@@ -85,9 +89,19 @@ export default defineComponent({
       selectedClass.value = upcomingClasses.value[0];
       store.dispatch(ACTIONS.FETCH_TUTOR_MODULES).catch((e: Error) => {
         console.error("Error fetching tutors modules: ", e.message);
-        store.dispatch(ACTIONS.LOG_OUT).then(() => {
-          router.push({ path: "/" });
-        });
+
+        if (e.message === "UPDATE_ACCESS_TOKEN: refresh token is expired") {
+          store.dispatch(ACTIONS.LOG_OUT).then(() => {
+            router.push({ path: "/" });
+          });
+        } else {
+          toast.add({
+            severity: "error",
+            summary: "Error",
+            detail: "Unable to get updated class list: ".concat(e.message),
+            life: 3000,
+          });
+        }
       });
     }
 
