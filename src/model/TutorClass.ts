@@ -31,22 +31,15 @@ export class TutorClass {
   private readonly _classType: string;
   private readonly _students: StudentAttended[];
 
-  constructor(tutorClassInterface?: TutorClassInterface) {
-    this._classId = (tutorClassInterface && tutorClassInterface.classId) || "";
-    this._name = (tutorClassInterface && tutorClassInterface.name) || "";
-    this._location =
-      (tutorClassInterface && tutorClassInterface.location) || "";
-    this._moduleCode =
-      (tutorClassInterface && tutorClassInterface.moduleCode) || "";
-    this._dateTime =
-      (tutorClassInterface && tutorClassInterface.dateTime) || "";
-    this._duration =
-      (tutorClassInterface && tutorClassInterface.duration) || "";
-    this._classType =
-      (tutorClassInterface && tutorClassInterface.classType) || "";
-    this._students = StudentAttended.toCollection(
-      (tutorClassInterface && tutorClassInterface.students) || []
-    );
+  constructor(tutorClassInterface: TutorClassInterface) {
+    this._classId = tutorClassInterface.classId;
+    this._name = tutorClassInterface.name;
+    this._location = tutorClassInterface.location;
+    this._moduleCode = tutorClassInterface.moduleCode;
+    this._dateTime = tutorClassInterface.dateTime;
+    this._duration = tutorClassInterface.duration;
+    this._classType = tutorClassInterface.classType;
+    this._students = StudentAttended.toCollection(tutorClassInterface.students);
   }
 
   // static methods

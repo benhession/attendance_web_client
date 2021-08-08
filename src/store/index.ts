@@ -143,6 +143,7 @@ const actions: ActionTree<State, unknown> = {
     state.commit(MUTATIONS.SET_LOGGED_IN, false);
     state.commit(MUTATIONS.CLEAR_TOKENS);
     state.commit(MUTATIONS.CLEAR_TUTORS_MODULES);
+    state.commit(MUTATIONS.CLEAR_TUTORS_MODULES);
   },
 
   [ACTIONS.FETCH_TOKENS_PWD_GRANT](state, [username, password]): Promise<void> {

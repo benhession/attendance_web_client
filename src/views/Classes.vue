@@ -79,6 +79,7 @@ export default defineComponent({
 
     // functions
     function logout(): void {
+      selectedClass.value = undefined;
       store
         .dispatch(ACTIONS.LOG_OUT)
         .then(() => router.push({ path: "/" }))

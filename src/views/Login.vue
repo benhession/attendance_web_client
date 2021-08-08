@@ -71,6 +71,11 @@ export default defineComponent({
               errorMessage.value = "Sorry, there was a network error.";
               break;
             }
+            case "Unable to get response from resource server": {
+              errorMessage.value =
+                "Unable to get response from resource server";
+              break;
+            }
             default: {
               console.error(e);
             }

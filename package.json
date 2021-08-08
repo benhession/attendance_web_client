@@ -12,6 +12,7 @@
     "axios": "^0.21.1",
     "buffer": "^6.0.3",
     "core-js": "^3.6.5",
+    "event-source-polyfill": "^1.0.25",
     "jwt-decode": "^3.1.2",
     "moment": "^2.29.1",
     "primeflex": "^2.0.0",
