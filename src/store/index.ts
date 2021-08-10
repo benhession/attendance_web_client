@@ -14,6 +14,7 @@ import VuexPersistence from "vuex-persist";
 import { TutorModule, TutorModuleInterface } from "@/model/TutorModule";
 import tutorModuleService from "@/services/tutorModuleService";
 import { TutorClass } from "@/model/TutorClass";
+import { SSEListenerService } from "@/services/SSEListenerService";
 
 export interface State {
   loggedIn: boolean;
@@ -140,6 +141,7 @@ const actions: ActionTree<State, unknown> = {
   },
 
   [ACTIONS.LOG_OUT](state) {
+    SSEListenerService.closeConnection();
     state.commit(MUTATIONS.SET_LOGGED_IN, false);
     state.commit(MUTATIONS.CLEAR_TOKENS);
     state.commit(MUTATIONS.CLEAR_TUTORS_MODULES);

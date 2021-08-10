@@ -5,10 +5,11 @@ import { EventSourcePolyfill } from "event-source-polyfill";
 import { ACTIONS, store } from "@/store";
 
 export class SSEListenerService {
-  private currentEventSource: EventSourcePolyfill;
-  private _classId = "none";
+  private static currentEventSource: EventSourcePolyfill | undefined;
+  private static classId = "none";
+  private static instance: SSEListenerService;
 
-  constructor(accessToken: string, classId: string) {
+  private constructor(accessToken: string, classId: string) {
     const EventSource = EventSourcePolyfill;
     const options = {
       headers: {
@@ -19,29 +20,50 @@ export class SSEListenerService {
       classId
     );
 
-    this.currentEventSource = new EventSource(url, options);
+    if (SSEListenerService.currentEventSource !== undefined) {
+      SSEListenerService.currentEventSource.close();
+    }
 
-    this.currentEventSource.onmessage = (event: { data: string }) => {
+    // create eventsource
+    SSEListenerService.currentEventSource = new EventSource(url, options);
+
+    // define what to do when a message is received
+    SSEListenerService.currentEventSource.onmessage = (event: {
+      data: string;
+    }) => {
       if (event.data !== "ping") {
         const theClass = new TutorClass(JSON.parse(event.data));
-        console.log(theClass);
-        this._classId = theClass.classId;
+
         store.dispatch(ACTIONS.UPDATE_CLASS, theClass).catch((e) => {
           console.error("SSEListener: ", e);
         });
       } else {
-        console.log("ping");
+        console.log("SSEListenerService: ping");
       }
     };
+
+    SSEListenerService.instance = this;
+    SSEListenerService.classId = classId;
   }
 
-  public closeConnection(): void {
-    this.currentEventSource.close();
+  // Methods
+
+  public static closeConnection(): void {
+    if (SSEListenerService.currentEventSource !== undefined) {
+      SSEListenerService.currentEventSource.close();
+      SSEListenerService.classId = "none";
+      SSEListenerService.currentEventSource = undefined;
+    }
   }
 
-  // Getters
+  public static startConnection(
+    accessToken: string,
+    classId: string
+  ): SSEListenerService {
+    return new SSEListenerService(accessToken, classId);
+  }
 
-  get classId(): string {
-    return this._classId;
+  public static getIdOfConnection(): string {
+    return SSEListenerService.classId;
   }
 }

@@ -84,7 +84,6 @@ export default defineComponent({
     const router = useRouter();
     const store = useStore();
     const toast = useToast();
-    let sseListener: SSEListenerService | undefined;
 
     // props
     const theProps = toRefs(props);
@@ -157,22 +156,12 @@ export default defineComponent({
     }
 
     watch(theClass, () => {
-      console.log(theClass.value);
-      console.log(sseListener);
-
-      if (sseListener !== undefined) {
-        sseListener.closeConnection();
-      }
-
       if (theClass.value.classStatus === ClassStatus.IN_PROGRESS) {
-        if (
-          sseListener === undefined ||
-          theClass.value.classId !== sseListener?.classId
-        ) {
+        if (theClass.value.classId !== SSEListenerService.getIdOfConnection()) {
           store
             .dispatch(ACTIONS.UPDATE_ACCESS_TOKEN)
             .then(() => {
-              sseListener = new SSEListenerService(
+              SSEListenerService.startConnection(
                 store.getters.getAccessToken,
                 theClass.value.classId
               );
@@ -195,7 +184,7 @@ export default defineComponent({
             });
         }
       } else {
-        sseListener = undefined;
+        SSEListenerService.closeConnection();
       }
     });
 
