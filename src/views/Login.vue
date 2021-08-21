@@ -7,6 +7,7 @@
   <div class="p-fluid">
     <div class="p-sm-offset-0 p-sm-12 p-md-offset-3 p-md-6 p-col">
       <div class="p-field">
+        <!--suppress XmlInvalidId -->
         <label for="username">Username</label>
         <InputText
           id="username"
@@ -16,6 +17,7 @@
         />
       </div>
       <div class="p-field">
+        <!--suppress XmlInvalidId -->
         <label for="password">Password</label>
         <password
           id="password"
