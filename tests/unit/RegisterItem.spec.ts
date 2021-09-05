@@ -53,4 +53,76 @@ describe("RegisterItem.vue", () => {
     expect(wrapper.find(".absent").exists()).toBe(false);
     expect(wrapper.find(".attended").exists()).toBe(true);
   });
+
+  it("doesn't have mark attended button if class is upcoming", () => {
+    const wrapper = mount(RegisterItem, {
+      global: globalMountOptions,
+      props: {
+        student: absentStudent,
+        theClass: MockObjects.upcomingClass,
+      },
+    });
+
+    const attendButton = wrapper.findComponent(Button);
+
+    expect(attendButton.exists()).toBe(false);
+  });
+
+  it("has mark attended button if class is in-progress", () => {
+    const wrapper = mount(RegisterItem, {
+      global: globalMountOptions,
+      props: {
+        student: absentStudent,
+        theClass: MockObjects.inProgressClass,
+      },
+    });
+
+    const attendButton = wrapper.findComponent(Button);
+
+    expect(attendButton.exists()).toBe(true);
+    expect(attendButton.text()).toEqual("Mark attended");
+  });
+
+  it("has mark attended button if class is completed", () => {
+    const wrapper = mount(RegisterItem, {
+      global: globalMountOptions,
+      props: {
+        student: absentStudent,
+        theClass: MockObjects.completedClass,
+      },
+    });
+
+    const attendButton = wrapper.findComponent(Button);
+
+    expect(attendButton.exists()).toBe(true);
+    expect(attendButton.text()).toEqual("Mark attended");
+  });
+
+  it("doesn't have button if student has attended in-progress class", () => {
+    const wrapper = mount(RegisterItem, {
+      global: globalMountOptions,
+      props: {
+        student: attendedStudent,
+        theClass: MockObjects.inProgressClass,
+      },
+    });
+
+    const attendButton = wrapper.findComponent(Button);
+
+    expect(attendButton.exists()).toBe(false);
+  });
+
+  it("doesn't have button if student has attended completed class", () => {
+    const wrapper = mount(RegisterItem, {
+      global: globalMountOptions,
+      props: {
+        student: attendedStudent,
+        theClass: MockObjects.completedClass,
+      },
+    });
+
+    const attendButton = wrapper.findComponent(Button);
+
+    expect(attendButton.exists()).toBe(false);
+  });
 });
